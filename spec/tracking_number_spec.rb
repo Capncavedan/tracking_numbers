@@ -40,22 +40,22 @@ describe TrackingNumber do
   describe "new instance" do
     it "requires a string" do
       expect {
-          TrackingNumber.new()
+          TrackingNumber.new
         }.to raise_error(ArgumentError)
     end
 
     it "upcases the provided tracking number" do
-      t = TrackingNumber.new('1z01w1010101010100')
-      expect(t.string).to eq('1Z01W1010101010100')
+      t = TrackingNumber.new '1z01w1010101010100'
+      expect(t.string).to eq '1Z01W1010101010100'
     end
 
     it "collapses the provided tracking number" do
-      t = TrackingNumber.new('1Z 010 101010 101010 0')
-      expect(t.string).to eq('1Z0101010101010100')
+      t = TrackingNumber.new '1Z 010 101010 101010 0'
+      expect(t.string).to eq '1Z0101010101010100'
     end
 
     it "provides an array of carriers" do
-      t = TrackingNumber.new('1Z0101010101010100')
+      t = TrackingNumber.new '1Z0101010101010100'
       expect(t.carriers).to be_an Array
     end
   end
@@ -64,30 +64,30 @@ describe TrackingNumber do
   context "instance methods" do
     describe "#next_multiple_of_ten" do
       it "returns 160 for 159" do
-        t = TrackingNumber.new('')
-        expect(t.next_multiple_of_ten(159)).to eq(160)
+        t = TrackingNumber.new ''
+        expect(t.next_multiple_of_ten 159).to eq 160
       end
 
       it "returns 170 for 160" do
-        t = TrackingNumber.new('')
-        expect(t.next_multiple_of_ten(160)).to eq(170)
+        t = TrackingNumber.new ''
+        expect(t.next_multiple_of_ten 160).to eq 170
       end
 
       it "returns 170 for 161" do
-        t = TrackingNumber.new('')
-        expect(t.next_multiple_of_ten(161)).to eq(170)
+        t = TrackingNumber.new ''
+        expect(t.next_multiple_of_ten 161).to eq 170
       end
     end
 
     describe "#ups_modified_mod_ten" do
       it "sums the values of the odd-position characters" do
-        t = TrackingNumber.new('')
-        expect(t.ups_modified_mod_ten('101010101010101')).to eq(8)
+        t = TrackingNumber.new ''
+        expect(t.ups_modified_mod_ten '101010101010101').to eq 8
       end
 
       it "doubles the sum of the values of the even-position characters" do
-        t = TrackingNumber.new('')
-        expect(t.ups_modified_mod_ten('010101010101010')).to eq(14)
+        t = TrackingNumber.new ''
+        expect(t.ups_modified_mod_ten '010101010101010').to eq 14
       end
     end
   end
@@ -96,66 +96,66 @@ describe TrackingNumber do
   context "ONTRAC checksum functions" do
     describe "#ontrac_mapping" do
       it "maps an alpha character A to a numeric character 2" do
-        expect(TrackingNumber.new('').ontrac_mapping('A')).to eq('2')
+        expect(TrackingNumber.new('').ontrac_mapping('A')).to eq '2'
       end
 
       it "maps an alpha character M to a numeric character 4" do
-        expect(TrackingNumber.new('').ontrac_mapping('M')).to eq('4')
+        expect(TrackingNumber.new('').ontrac_mapping('M')).to eq '4'
       end
 
       it "does not change a numeric character" do
-        expect(TrackingNumber.new('').ontrac_mapping('3')).to eq('3')
+        expect(TrackingNumber.new('').ontrac_mapping('3')).to eq '3'
       end
     end
 
     describe "#ontrac_checksum_digit" do
       it "returns the last digit from a string, as an integer" do
-        expect(TrackingNumber.new('1234').ontrac_checksum_digit).to eq(4)
+        expect(TrackingNumber.new('1234').ontrac_checksum_digit).to eq 4
       end
     end
 
     describe "#ontrac_core_portion_checksum" do
       it "returns the value derived from the sum of odd-position characters and double the sum of even-position characters" do
         # remember this will be a 1-based array examination, i.e. first character is an odd position
-        expect(TrackingNumber.new('C10101010101010').ontrac_core_portion_checksum).to eq(18)
+        expect(TrackingNumber.new('C10101010101010').ontrac_core_portion_checksum).to eq 18
       end
     end
 
     describe "#ontrac_checksum_ok?" do
       it "returns true when the checksum digit matches the checksum remainder of the core portion" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ontrac_checksum_digit).and_return(4)
-        allow(t).to receive(:ontrac_core_portion_checksum_remainder).and_return(4)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ontrac_checksum_digit).and_return 4
+        allow(t).to receive(:ontrac_core_portion_checksum_remainder).and_return 4
         expect(t.ontrac_checksum_ok?).to eq true
       end
 
       it "returns false when the checksum digit does NOT match the checksum remainder of the core portion" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ontrac_checksum_digit).and_return(4)
-        allow(t).to receive(:ontrac_core_portion_checksum_remainder).and_return(5)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ontrac_checksum_digit).and_return 4
+        allow(t).to receive(:ontrac_core_portion_checksum_remainder).and_return 5
         expect(t.ontrac_checksum_ok?).to eq false
       end
     end
 
     describe "#ontrac_core_portion_checksum" do
       it "calls #ups_modified_mod_ten with the core portion" do
-        t = TrackingNumber.new('C12345678901234')
-        expect(t).to receive(:ups_modified_mod_ten).with('41234567890123')
+        t = TrackingNumber.new 'C12345678901234'
+        expect(t).to receive(:ups_modified_mod_ten).with '41234567890123'
         t.ontrac_core_portion_checksum
       end
     end
 
     describe "#ontrac_core_portion_checksum_remainder" do
       it "returns 0 when 10" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ontrac_core_portion_checksum).and_return(10)
-        expect(t.ontrac_core_portion_checksum_remainder).to eq(0)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ontrac_core_portion_checksum).and_return 10
+        expect(t.ontrac_core_portion_checksum_remainder).to eq 0
       end
 
       it "returns 6 (20 minus 14) when checksum is 14" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ontrac_core_portion_checksum).and_return(14)
-        expect(t.ontrac_core_portion_checksum_remainder).to eq(6)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ontrac_core_portion_checksum).and_return 14
+        expect(t.ontrac_core_portion_checksum_remainder).to eq 6
       end
     end
 
@@ -176,77 +176,77 @@ describe TrackingNumber do
   context "UPS checksum functions" do
     describe "#ups_mapping" do
       it "maps an alpha character A to a numeric character 2" do
-        expect(TrackingNumber.new('').ups_mapping('A')).to eq('2')
+        expect(TrackingNumber.new('').ups_mapping('A')).to eq '2'
       end
 
       it "maps an alpha character M to a numeric character 4" do
-        expect(TrackingNumber.new('').ups_mapping('M')).to eq('4')
+        expect(TrackingNumber.new('').ups_mapping('M')).to eq '4'
       end
 
       it "does not change a numeric character" do
-        expect(TrackingNumber.new('').ups_mapping('3')).to eq('3')
+        expect(TrackingNumber.new('').ups_mapping('3')).to eq '3'
       end
     end
 
     describe "#ups_checksum_digit" do
       it "returns the last digit from a string, as an integer" do
-        expect(TrackingNumber.new('1234').ups_checksum_digit).to eq(4)
+        expect(TrackingNumber.new('1234').ups_checksum_digit).to eq 4
       end
     end
 
     describe "#ups_core_portion" do
       it "return the section between the 1Z and the check digit" do
-        expect(TrackingNumber.new('1Z0101010101010109').ups_core_portion).to eq('010101010101010')
+        expect(TrackingNumber.new('1Z0101010101010109').ups_core_portion).to eq '010101010101010'
       end
     end
 
     describe "#ups_core_portion_checksum" do
       it "calls #ups_modified_mod_ten with the core portion" do
-        t = TrackingNumber.new('1Z 010101010101010 0')
-        expect(t).to receive(:ups_modified_mod_ten).with('010101010101010')
+        t = TrackingNumber.new '1Z 010101010101010 0'
+        expect(t).to receive(:ups_modified_mod_ten).with '010101010101010'
         t.ups_core_portion_checksum
       end
     end
 
     describe "#ups_checksum_ok?" do
       it "returns true when the checksum digit matches the checksum remainder of the core portion" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ups_checksum_digit).and_return(4)
-        allow(t).to receive(:ups_core_portion_checksum_remainder).and_return(4)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ups_checksum_digit).and_return 4
+        allow(t).to receive(:ups_core_portion_checksum_remainder).and_return 4
         expect(t.ups_checksum_ok?).to eq true
       end
 
       it "returns false when the checksum digit does NOT match the checksum remainder of the core portion" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ups_checksum_digit).and_return(4)
-        allow(t).to receive(:ups_core_portion_checksum_remainder).and_return(5)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ups_checksum_digit).and_return 4
+        allow(t).to receive(:ups_core_portion_checksum_remainder).and_return 5
         expect(t.ups_checksum_ok?).to eq false
       end
     end
 
     describe "#ups_core_portion_checksum_remainder" do
       it "returns 0 when 10" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ups_core_portion_checksum).and_return(10)
-        expect(t.ups_core_portion_checksum_remainder).to eq(0)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ups_core_portion_checksum).and_return 10
+        expect(t.ups_core_portion_checksum_remainder).to eq 0
       end
 
       it "return 6 (20 minus 14) when checksum is 14" do
-        t = TrackingNumber.new('')
-        allow(t).to receive(:ups_core_portion_checksum).and_return(14)
-        expect(t.ups_core_portion_checksum_remainder).to eq(6)
+        t = TrackingNumber.new ''
+        allow(t).to receive(:ups_core_portion_checksum).and_return 14
+        expect(t.ups_core_portion_checksum_remainder).to eq 6
       end
     end
 
     describe "#ups_core_portion_mapped_to_numbers" do
       it "converts alpha characters to digits" do
-        t = TrackingNumber.new('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-        expect(t.ups_core_portion_mapped_to_numbers).to eq('45678901234567890123456')
+        t = TrackingNumber.new 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        expect(t.ups_core_portion_mapped_to_numbers).to eq '45678901234567890123456'
       end
 
       it "does not alter numeric characters" do
-        t = TrackingNumber.new('01234567890')
-        expect(t.ups_core_portion_mapped_to_numbers).to eq('23456789')
+        t = TrackingNumber.new '01234567890'
+        expect(t.ups_core_portion_mapped_to_numbers).to eq '23456789'
       end
     end
 
